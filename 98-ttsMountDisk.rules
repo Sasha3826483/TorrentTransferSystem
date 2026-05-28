@@ -1,0 +1,1 @@
+SUBSYSTEM=="block", ACTION=="add", KERNEL=="loop4", ENV{ID_FS_UUID}=="7643b7af-6355-4d76-942a-4f94c48eabbf", RUN+="/home/user/torrent-throw-system/test.sh"
