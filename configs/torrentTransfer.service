@@ -4,5 +4,5 @@ Description=My awesome file-transfer sercive
 [Service]
 Type=oneshot
 User=user
-WorkingDirectory=/home/user/torrent-throw-system/debug/
-ExecStart=/home/user/torrent-throw-system/debug/test.sh
+WorkingDirectory=/home/user/torrent-throw-system/scripts/
+ExecStart=/home/user/torrent-throw-system/scripts/main.sh
