@@ -1,2 +1,2 @@
-SUBSYSTEM=="block", ACTION=="add", KERNEL=="loop4", ENV{ID_FS_UUID}=="7643b7af-6355-4d76-942a-4f94c48eabbf", \
+SUBSYSTEM=="block", ACTION=="add", ENV{ID_FS_UUID}=="DE8497A484977E29", \
     TAG+="systemd", ENV{SYSTEMD_WANTS}+="torrentTransfer.service"

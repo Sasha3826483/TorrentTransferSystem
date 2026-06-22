@@ -2,3 +2,5 @@
 *test*
 *.img
 data/
+removeOutputDir.sh
+mqttTestMsgPush.sh
