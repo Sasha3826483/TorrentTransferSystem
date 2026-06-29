@@ -1,0 +1,144 @@
+- id: mqtt_input_notification
+  alias: MQTT Input Notification
+
+  triggers:
+    - trigger: mqtt
+      topic: tts/msg
+
+  actions:
+    - choose:
+
+        - conditions:
+            - condition: template
+              value_template: >
+                {{ 'Доступные для копирования файлы' in trigger.payload }}
+
+          sequence:
+            - action: notify.mobile_app_iphone
+              data:
+                title: TTS
+                message: "{{ trigger.payload }}"
+                data:
+                  actions:
+
+                    - action: "0"
+                      title: Скопировать все файлы
+
+                    - action: "1"
+                      title: Выбрать файлы
+
+                    - action: "2"
+                      title: Отмена
+
+
+
+        - conditions:
+            - condition: template
+              value_template: >
+                {{ 'Доступные для удаления файлы' in trigger.payload }}
+
+          sequence:
+            - action: notify.mobile_app_iphone
+              data:
+                title: TTS
+                message: "{{ trigger.payload }}"
+                data:
+                  actions:
+
+                    - action: "0"
+                      title: Удалить все файлы
+
+                    - action: "1"
+                      title: Выбрать файлы
+
+                    - action: "2"
+                      title: Отмена
+
+
+
+        - conditions:
+            - condition: template
+              value_template: >
+                {{ 'Копирование' in trigger.payload }}
+
+          sequence:
+            - action: notify.mobile_app_iphone
+              data:
+                title: TTS
+                message: "{{ trigger.payload }}"
+                data:
+                  actions:
+
+                    - action: "0"
+                      title: Копирование
+
+                    - action: "1"
+                      title: Удаление
+
+                    - action: "2"
+                      title: Выход
+
+
+
+        - conditions:
+            - condition: template
+              value_template: >
+                {{ 'Введите номера файлов' in trigger.payload }}
+
+          sequence:
+            - action: notify.mobile_app_iphone
+              data:
+                title: TTS
+                message: "{{ trigger.payload }}"
+                data:
+                  actions:
+
+                    - action: STRING_REPLY
+                      title: Ответить
+                      behavior: textInput
+
+
+      default:
+        - action: notify.mobile_app_iphone
+          data:
+            title: TTS
+            message: >
+              {{ trigger.payload | replace('\\n', '\n') }}
+
+  mode: queued
+
+
+- id: mqtt_input_reply
+  alias: MQTT Input Reply
+
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+
+  actions:
+
+    - choose:
+
+        - conditions:
+            - condition: template
+              value_template: >
+                {{ trigger.event.data.action == 'STRING_REPLY' }}
+
+          sequence:
+            - action: mqtt.publish
+              data:
+                topic: tts/reply
+                payload: >
+                  {{ trigger.event.data.reply_text }}
+
+
+      default:
+
+        - action: mqtt.publish
+          data:
+            topic: tts/reply
+            payload: >
+              {{ trigger.event.data.action }}
+
+
+  mode: queued

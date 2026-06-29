@@ -86,9 +86,6 @@ function input {
         read -rp "$1" inp
     else
         inp="$(mosquitto_sub -t "tts/reply" -C 1)" # --timeout 30  - не работает
-        # if [[ $? -ne 0 ]]; then
-        #     inp=3
-        # fi
     fi
     echo "$inp"
 }

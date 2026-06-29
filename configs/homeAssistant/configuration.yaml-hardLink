@@ -1,0 +1,47 @@
+# Loads default set of integrations. Do not remove.
+default_config:
+
+# Load frontend themes from the themes folder
+frontend:
+  themes: !include_dir_merge_named themes
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+mqtt:
+  sensor:
+    - name: "Write Speed"
+      unique_id: "mqtt_write_speed_sensor"
+      state_topic: "tts/copyProcSpeedWrite"
+      unit_of_measurement: "MB/s"
+      value_template: "{{ value | float }}"
+      state_class: measurement
+
+    - name: "Copy Proc Perc"
+      unique_id: "mqtt_proc_perc_sensor"
+      state_topic: "tts/copyProcPerc"
+      unit_of_measurement: "%"
+      value_template: "{{ value | float }}"
+      state_class: measurement
+
+    - name: "Rsync File Name"
+      unique_id: "mqtt_rsync_file_name_sensor"
+      state_topic: "tts/copyProcFileName"
+      value_template: "{{ value | string }}"
+
+    - name: "Rsync Time Copy"
+      unique_id: "mqtt_rsync_time_copy_sensor"
+      state_topic: "tts/copyProcTimeRemain"
+      value_template: "{{ value | string }}"
+
+    - name: "Rsync File Size"
+      unique_id: "mqtt_rsync_file_size_sensor"
+      state_topic: "tts/copyProcFileSize"
+      value_template: "{{ value | string }}"
+
+    - name: "Rsync Num File"
+      unique_id: "mqtt_rsync_num_file_sensor"
+      state_topic: "tts/copyProcNumFile"
+      value_template: "{{ value | string }}"
+
