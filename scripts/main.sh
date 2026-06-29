@@ -6,7 +6,7 @@ declare -xr PATH_TO_PRJ="$(git rev-parse --show-toplevel)"
 declare -xr PATH_TO_PRJ_SCRIPT="$PATH_TO_PRJ/scripts"
 declare -xr LOG_FILE="$PATH_TO_PRJ/scripts/system.log"
 declare -xr MOUNT_POINT="/mnt/ext-nvme"
-declare -xr TERM_MODE=$(test -t 0 && echo 0 || echo 1)
+declare -xr TERM_MODE=$(test -t 0 && echo 0 || echo 1) # 0 = работа в терминале; 1 = без терминала
 declare -xi MSG_MODE=
 declare -xr PATH_SOURCE="/mnt/int-nvme/data-transmission-daemon/complete/"
 # declare -xr PATH_DESTIN="$PATH_TO_PRJ/scripts/testDirOutputMnt/"

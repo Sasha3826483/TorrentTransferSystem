@@ -14,23 +14,18 @@ function copyFiles {
     local -r total="$#"
     local current=0
     local torrentId=0
-    local monitorPidSpeed=0
-    local monitorPidSize=0
-
-    if (($TERM_MODE != 0)); then
-        $PATH_TO_PRJ_SCRIPT/monitorSpeedWrite.sh &>$LOG_FILE &
-        monitorPidSpeed=$!
-    fi
+    local monitorCopyPid=0
 
     for file in "${@}"; do
         ((current++))
         msg "PROC: копирование файла [$current/$total] $(basename "$file") - $(du -h "$file" | cut -f 1)"
 
-        mosquitto_pub -t tts/rsyncFileName -m "[$current/$total] $(basename "$file")"
+        mosquitto_pub -t tts/copyProcNumFile -m "[$current/$total]"
+        mosquitto_pub -t tts/copyProcFileSize -m "$(du -h "$file" | cut -f 1)"
 
         if (($TERM_MODE != 0)); then
-            $PATH_TO_PRJ_SCRIPT/monitorSize.sh "$(basename "$file")" &>$LOG_FILE &
-            monitorPidSize=$!
+            $PATH_TO_PRJ_SCRIPT/monitorCopy.sh "$(basename "$file")" &>>$LOG_FILE &
+            monitorCopyPid=$!
         fi
 
         # Копируем разными способами:
@@ -44,15 +39,18 @@ function copyFiles {
                 "$file" \
                 "$PATH_DESTIN"
         else
-            cp -p "$file" "$PATH_DESTIN" &>"$LOG_FILE"
+            cp -rp "$file" "$PATH_DESTIN" &>>"$LOG_FILE"
         fi
 
         exitStatus=$?
 
         # Убиваем мониторинг процесса копирования текущего файла
         if (($TERM_MODE != 0)); then
-            kill "$monitorPidSize" 2>/dev/null
+            kill "$monitorCopyPid" 2>/dev/null
             mosquitto_pub -t tts/copyProcPerc -m "0"
+            mosquitto_pub -t tts/copyProcFileName -m "nothing"
+            mosquitto_pub -t tts/copyProcSpeedWrite -m "0"
+            mosquitto_pub -t tts/copyProcFileSize -m "0 gb"
         fi
 
         if (($exitStatus == 0)); then
@@ -66,12 +64,7 @@ function copyFiles {
         fi
     done
 
-    # Убиваем мониторинг скорости записи
-    if (($TERM_MODE != 0)); then
-        kill "$monitorPidSpeed" 2>/dev/null
-    fi
-
-    mosquitto_pub -t tts/rsyncFileName -m "nothing"
+    mosquitto_pub -t tts/copyProcNumFile -m "[0/0]"
 
     case "$exitStatus" in
     0)
@@ -128,7 +121,7 @@ if ((${#files[@]} == 0)); then
     exit 99
 else
     for i in "${!files[@]}"; do
-        output+="   $(
+        fileList+="   $(
             printf "%d) %s %s" \
                 "$((i + 1))" \
                 "$(basename "${files[$i]}")" \
@@ -136,20 +129,28 @@ else
         );
 "
     done
-    output+="   *) TOTAL $(du -sh "$PATH_SOURCE" | cut -f 1)"
+    fileList+="   *) TOTAL $(du -sh "$PATH_SOURCE" | cut -f 1)"
 fi
 
 while true; do
     availableSpaceHuman=$(df --output=avail -h $PATH_DESTIN | tail -n1)
-    msg "MSG: Доступные файлы:
-$output
+
+    if (($TERM_MODE == 0)); then
+        msg "MSG: Доступные для копирования файлы:
+$fileList
 
 MSG: Доступно $availableSpaceHuman
 
 INPUT: Выберите действие:
-    0) Полное копирование;
-    1) Выборочное копирование;
+    0) Скопировать все файлы;
+    1) Выбрать файлы;
     2) Назад"
+    else
+        msg "MSG: Доступные для копирования файлы:
+$fileList
+
+MSG: Доступно $availableSpaceHuman"
+    fi
 
     modeNum=$(input "Ввод: ")
 
@@ -167,7 +168,12 @@ INPUT: Выберите действие:
         exit $?
         ;;
     1)
-        msg "INPUT: Введите номера файлов (через пробел, 0 - отмена): "
+        msg "MSG: Доступные файлы:
+$fileList
+
+MSG: Доступно $availableSpaceHuman
+
+INPUT: Введите номера файлов (через пробел, 0 - отмена): "
         selectedIndexes=($(input "Ввод: "))
 
         while true; do

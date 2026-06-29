@@ -56,13 +56,22 @@ while true; do
 
     availableSpaceHuman=$(df --output=avail -h $PATH_DESTIN | tail -n1)
 
-    msg "MSG: Доступные для удаления файлы:
+    if (($TERM_MODE == 0)); then
+        msg "MSG: Доступные для удаления файлы:
 $fileList
-Свободно места на диске: $availableSpaceHuman
+
+MSG: Свободно места на диске: $availableSpaceHuman
+
 INPUT: Выберите действие:
     0) Удалить все файлы;
-    1) Удалить файлы выборочно;
+    1) Выбрать файлы;
     2) Отмена"
+    else
+        msg "MSG: Доступные для удаления файлы:
+$fileList
+
+MSG: Свободно места на диске: $availableSpaceHuman"
+    fi
 
     modeNum=$(input "Ввод: ")
 
@@ -72,7 +81,13 @@ INPUT: Выберите действие:
         exit $?
         ;;
     1)
-        msg "INPUT: Введите номера файлов (через пробел, 0 - отмена):"
+        msg "MSG: Доступные файлы:
+$fileList
+
+MSG: Свободно места на диске: $availableSpaceHuman
+
+INPUT: Введите номера файлов (через пробел, 0 - отмена):"
+
         selectedIndexes=($(input))
 
         while true; do
